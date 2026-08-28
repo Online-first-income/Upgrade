@@ -143,6 +143,29 @@ app.post('/api/upgrade-plan', async (req, res) => {
     }
 });
 
+// ==================== ৫. TASK REWARD ROUTE ====================
+app.post('/api/complete-task', async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const user = await User.findById(userId);
+
+        if (!user) return res.status(400).json({ error: "ইউজার পাওয়া যায়নি।" });
+
+        const currentPlan = PLANS[user.plan] || PLANS.free;
+        const reward = currentPlan.adReward;
+
+        user.balance += reward;
+        await user.save();
+
+        res.json({
+            success: true,
+            message: `অভিনন্দন! আপনার অ্যাকাউন্টে ৳${reward} যোগ করা হয়েছে।`
+        });
+    } catch (err) {
+        res.status(500).json({ error: "রিওয়ার্ড যোগ করতে সমস্যা হয়েছে।" });
+    }
+});
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
