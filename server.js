@@ -2,167 +2,150 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 
-// মিডলওয়্যার সেটআপ
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-// ১. public ফোল্ডার স্ট্যাটিক ফাইল হিসেবে যুক্ত করা
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ২. হোমপেজ রাউট
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// ==================== ১. MONGODB CONNECTIVITY ====================
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://ronynetwork4_db_user:XrM1YaCfL05rLHs8@cluster0.38o182a.mongodb.net/JobDatabase?retryWrites=true&w=majority&appName=Cluster0";
 
-// ৩. সাবস্ক্রিপশন প্ল্যান কনফিগারেশন
+mongoose.connect(MONGO_URI)
+    .then(() => console.log("MongoDB Connected Successfully"))
+    .catch(err => console.error("MongoDB Connection Error:", err));
+
+// ==================== ২. SCHEMAS & MODELS ====================
+const userSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    phone: { type: String, required: true },
+    balance: { type: Number, default: 0.00 },
+    plan: { type: String, default: 'free' }
+}, { timestamps: true });
+
+const depositSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    method: { type: String, required: true },
+    senderNumber: { type: String, required: true },
+    amount: { type: Number, required: true },
+    trxId: { type: String, required: true },
+    status: { type: String, default: 'pending' }
+}, { timestamps: true });
+
+const User = mongoose.model('User', userSchema);
+const Deposit = mongoose.model('Deposit', depositSchema);
+
 const PLANS = {
     free: { name: "Free", price: 0, adReward: 0.30 },
     silver: { name: "Silver", price: 100, adReward: 0.70 },
     gold: { name: "Gold", price: 500, adReward: 1.50 }
 };
 
-// ৪. ইউজার টেস্ট ডাটাবেজ
-let users = [
-    { id: 'usr_101', name: "Tanvir BD", balance: 150.00, plan: "free", country: "BD" }
-];
+// ==================== ৩. AUTH ROUTES ====================
+app.post('/api/register', async (req, res) => {
+    try {
+        const { name, email, password, phone } = req.body;
+        
+        const existingUser = await User.findOne({ email });
+        if (existingUser) return res.status(400).json({ error: "ইমেইলটি ইতিমধ্যেই রেজিস্টার করা রয়েছে।" });
 
-// ৫. ডাইনামিক অ্যাড নেটওয়ার্ক কনফিগারেশন
-const AD_NETWORKS = {
-    cpalead: {
-        enabled: true,
-        secretKey: 'MY_SECRET_123',
-        ourCommissionPercentage: 30
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = new User({ name, email, password: hashedPassword, phone });
+        await newUser.save();
+
+        res.json({ success: true, message: "রেজিস্ট্রেশন সফল হয়েছে! এখন লগইন করুন।" });
+    } catch (err) {
+        res.status(500).json({ error: "সার্ভারে সমস্যা হয়েছে।" });
     }
-};
+});
 
-// ৬. ইউজার তথ্য ও প্ল্যান দেখার এপিআই
-app.get('/api/user/:userId', (req, res) => {
-    const user = users.find(u => u.id === req.params.userId);
-    if (user) {
-        const userPlanDetails = PLANS[user.plan] || PLANS.free;
+app.post('/api/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const user = await User.findOne({ email });
+
+        if (!user) return res.status(400).json({ error: "ইমেইল বা পাসওয়ার্ড ভুল।" });
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(400).json({ error: "ইমেইল বা পাসওয়ার্ড ভুল।" });
+
         res.json({
-            ...user,
-            planDetails: userPlanDetails
+            success: true,
+            user: { id: user._id, name: user.name, email: user.email, balance: user.balance, plan: user.plan }
         });
-    } else {
-        res.status(404).json({ error: "ইউজার পাওয়া যায়নি" });
+    } catch (err) {
+        res.status(500).json({ error: "সার্ভারে সমস্যা হয়েছে।" });
     }
 });
 
-// ৭. সাবস্ক্রিপশন আপগ্রেড করার এপিআই
-app.post('/api/upgrade-plan', (req, res) => {
-    const { userId, targetPlan } = req.body;
-    const user = users.find(u => u.id === userId);
+app.get('/api/user/:userId', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.userId);
+        if (!user) return res.status(404).json({ error: "ইউজার পাওয়া যায়নি" });
 
-    if (!user) {
-        return res.status(400).json({ error: "ইউজার সঠিক নয়" });
+        res.json({
+            id: user._id,
+            name: user.name,
+            balance: user.balance,
+            plan: user.plan,
+            planDetails: PLANS[user.plan] || PLANS.free
+        });
+    } catch (err) {
+        res.status(500).json({ error: "ত্রুটি হয়েছে" });
     }
-
-    const selectedPlan = PLANS[targetPlan];
-    if (!selectedPlan) {
-        return res.status(400).json({ error: "অকার্যকর প্ল্যান" });
-    }
-
-    if (user.plan === targetPlan) {
-        return res.status(400).json({ error: "আপনি ইতিমধ্যে এই প্ল্যানে আছেন।" });
-    }
-
-    if (user.balance < selectedPlan.price) {
-        return res.status(400).json({ error: `পর্যাপ্ত ব্যালেন্স নেই! ${selectedPlan.name} প্ল্যানের জন্য ৳${selectedPlan.price} প্রয়োজন।` });
-    }
-
-    // ব্যালেন্স কেটে প্ল্যান আপডেট করা
-    user.balance -= selectedPlan.price;
-    user.plan = targetPlan;
-
-    res.json({
-        success: true,
-        message: `অভিনন্দন! আপনার অ্যাকাউন্ট সফলভাবে ${selectedPlan.name} প্ল্যানে আপগ্রেড হয়েছে।`,
-        newBalance: user.balance,
-        newPlan: user.plan
-    });
 });
 
-// ৮. অ্যাড রিওয়ার্ড যোগ করার এপিআই (প্ল্যান অনুযায়ী)
-app.post('/api/add-reward', (req, res) => {
-    const { userId } = req.body;
-    const user = users.find(u => u.id === userId);
+// ==================== ৪. DEPOSIT & MEMBERSHIP ====================
+app.post('/api/deposit', async (req, res) => {
+    try {
+        const { userId, method, senderNumber, amount, trxId } = req.body;
 
-    if (!user) {
-        return res.status(400).json({ error: "ইউজার সঠিক নয়" });
+        if (!userId || !senderNumber || !amount || !trxId) {
+            return res.status(400).json({ error: "সবগুলো ঘর পূরণ করুন।" });
+        }
+
+        const newDeposit = new Deposit({ userId, method, senderNumber, amount, trxId });
+        await newDeposit.save();
+
+        res.json({ success: true, message: "ডিপোজিট রিকোয়েস্ট সফলভাবে জমা হয়েছে।" });
+    } catch (err) {
+        res.status(500).json({ error: "ডিপোজিট রিকোয়েস্ট জমা দেওয়া সম্ভব হয়নি।" });
     }
-
-    const userPlan = PLANS[user.plan] || PLANS.free;
-    const reward = userPlan.adReward;
-
-    user.balance += reward;
-
-    res.json({
-        success: true,
-        rewardEarned: reward,
-        newBalance: user.balance
-    });
 });
 
-// ৯. পোস্টব্যাক এন্ডপয়েন্ট
-app.get('/api/postback/:network', (req, res) => {
-    const networkName = req.params.network;
-    const networkConfig = AD_NETWORKS[networkName];
+app.post('/api/upgrade-plan', async (req, res) => {
+    try {
+        const { userId, targetPlan } = req.body;
+        const user = await User.findById(userId);
 
-    if (!networkConfig || !networkConfig.enabled) {
-        return res.status(400).send("Unauthorized Network");
+        if (!user) return res.status(400).json({ error: "ইউজার সঠিক নয়" });
+
+        const selectedPlan = PLANS[targetPlan];
+        if (!selectedPlan) return res.status(400).json({ error: "অকার্যকর প্ল্যান" });
+
+        if (user.balance < selectedPlan.price) {
+            return res.status(400).json({ error: `পর্যাপ্ত ব্যালেন্স নেই! ${selectedPlan.name} প্ল্যানের জন্য ৳${selectedPlan.price} প্রয়োজন।` });
+        }
+
+        user.balance -= selectedPlan.price;
+        user.plan = targetPlan;
+        await user.save();
+
+        res.json({ success: true, message: `অভিনন্দন! আপনার অ্যাকাউন্ট সফলভাবে ${selectedPlan.name} প্ল্যানে আপগ্রেড হয়েছে।` });
+    } catch (err) {
+        res.status(500).json({ error: "আপগ্রেড ব্যর্থ হয়েছে।" });
     }
-
-    const { subId, payout, secret } = req.query;
-
-    if (secret !== networkConfig.secretKey) {
-        return res.status(403).send("Invalid Secret Key");
-    }
-
-    const user = users.find(u => u.id === subId);
-    if (!user) {
-        return res.status(404).send("User Not Found");
-    }
-
-    const totalPayoutAmount = parseFloat(payout) || 0;
-    const commission = (totalPayoutAmount * networkConfig.ourCommissionPercentage) / 100;
-    const userEarnings = totalPayoutAmount - commission;
-
-    user.balance += userEarnings;
-
-    console.log(`[SUCCESS] User ${subId} earned ৳${userEarnings}`);
-    res.send("1");
 });
 
-// ১০. বিকাশ ও নগদ উইথড্রয়াল এপিআই
-app.post('/api/withdraw', (req, res) => {
-    const { userId, amount, method, accountNumber } = req.body;
-    const user = users.find(u => u.id === userId);
-
-    if (!user) {
-        return res.status(400).json({ error: "ইউজার সঠিক নয়" });
-    }
-
-    if (amount < 50) {
-        return res.status(400).json({ error: "সর্বনিম্ন ৫০ টাকা উইথড্র করা যাবে।" });
-    }
-
-    if (user.balance < amount) {
-        return res.status(400).json({ error: "পর্যাপ্ত ব্যালেন্স নেই।" });
-    }
-
-    user.balance -= amount;
-    res.json({
-        success: true,
-        message: `${method} (${accountNumber})-এ ৳${amount} টাকা পেমেন্ট রিকোয়েস্ট সফল হয়েছে।`,
-        remainingBalance: user.balance
-    });
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// সার্ভার পোর্ট সেটআপ
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
