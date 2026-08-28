@@ -18,6 +18,8 @@
         .btn-green:hover { background: #2ecc71; }
         .btn-orange { background: #e67e22; }
         .btn-purple { background: #8e44ad; }
+        .btn-red { background: #c0392b; }
+        .btn-red:hover { background: #e74c3c; }
         .hidden { display: none; }
         .notice { background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; font-size: 13px; margin-bottom: 10px; }
         .task-card { background: #f9f9f9; padding: 12px; border-left: 4px solid #2980b9; margin-bottom: 10px; border-radius: 4px; }
@@ -32,7 +34,6 @@
     <div id="auth-section">
         <h2>বিডি আর্নিং প্ল্যাটফর্ম</h2>
         
-        <!-- লগইন ফর্ম -->
         <div id="login-box" class="card">
             <h3>একাউন্টে লগইন করুন</h3>
             <input type="email" id="login-email" placeholder="ইমেইল দিন">
@@ -41,7 +42,6 @@
             <p style="text-align:center; font-size:14px; margin-top:10px;">একাউন্ট নেই? <a href="#" onclick="toggleAuth('register')">রেজিস্ট্রেশন করুন</a></p>
         </div>
 
-        <!-- রেজিস্ট্রেশন ফর্ম -->
         <div id="register-box" class="card hidden">
             <h3>নতুন একাউন্ট তৈরি করুন</h3>
             <input type="text" id="reg-name" placeholder="আপনার পূর্ণ নাম">
@@ -61,44 +61,57 @@
             <button onclick="logout()" style="width: auto; padding: 4px 10px; font-size: 12px; float: right; background: #c0392b;">লগআউট</button>
         </div>
 
-        <!-- ৪টি কাজের সেকশন (CPAlead & Adsterra Links) -->
+        <!-- কাজের সেকশন -->
         <div class="card">
             <h3>দৈনিক কাজ (Tasks)</h3>
             
-            <!-- কাজ ১ -->
             <div class="task-card">
                 <h4>১. CPAlead Task 1</h4>
-                <p style="font-size:12px; color:#555;">কাজটি সম্পন্ন করতে ৩০ সেকেন্ড অপেক্ষা করুন।</p>
+                <p style="font-size:12px; color:#555;">কাজটি সম্পন্ন করতে ৩০ সেকেন্ড অপেক্ষা করুন। (দিনে ১ বার)</p>
                 <div id="timer-cpalead1" class="timer-box"></div>
                 <button id="btn-cpalead1" class="btn-orange" onclick="startTask('cpalead1', 'https://www.cpalead.com', 30)">CPAlead কাজ ১ শুরু করুন</button>
             </div>
 
-            <!-- কাজ ২ -->
             <div class="task-card">
                 <h4>২. CPAlead Task 2</h4>
-                <p style="font-size:12px; color:#555;">কাজটি সম্পন্ন করতে ২৫ সেকেন্ড অপেক্ষা করুন।</p>
+                <p style="font-size:12px; color:#555;">কাজটি সম্পন্ন করতে ২৫ সেকেন্ড অপেক্ষা করুন। (দিনে ১ বার)</p>
                 <div id="timer-cpalead2" class="timer-box"></div>
                 <button id="btn-cpalead2" class="btn-orange" onclick="startTask('cpalead2', 'https://www.cpalead.com', 25)">CPAlead কাজ ২ শুরু করুন</button>
             </div>
 
-            <!-- কাজ ৩ -->
             <div class="task-card">
                 <h4>৩. Adsterra Direct Link 1</h4>
-                <p style="font-size:12px; color:#555;">কাজটি সম্পন্ন করতে ২০ সেকেন্ড অপেক্ষা করুন।</p>
+                <p style="font-size:12px; color:#555;">কাজটি সম্পন্ন করতে ২০ সেকেন্ড অপেক্ষা করুন। (দিনে ১ বার)</p>
                 <div id="timer-adsterra1" class="timer-box"></div>
                 <button id="btn-adsterra1" class="btn-purple" onclick="startTask('adsterra1', 'https://www.adsterra.com', 20)">Adsterra লিঙ্ক ১ শুরু করুন</button>
             </div>
 
-            <!-- কাজ ৪ -->
             <div class="task-card">
                 <h4>৪. Adsterra Direct Link 2</h4>
-                <p style="font-size:12px; color:#555;">কাজটি সম্পন্ন করতে ১৫ সেকেন্ড অপেক্ষা করুন।</p>
+                <p style="font-size:12px; color:#555;">কাজটি সম্পন্ন করতে ১৫ সেকেন্ড অপেক্ষা করুন। (দিনে ১ বার)</p>
                 <div id="timer-adsterra2" class="timer-box"></div>
                 <button id="btn-adsterra2" class="btn-purple" onclick="startTask('adsterra2', 'https://www.adsterra.com', 15)">Adsterra লিঙ্ক ২ শুরু করুন</button>
             </div>
         </div>
 
-        <!-- টাকা ডিপোজিট করার সেকশন -->
+        <!-- টাকা তোলার সেকশন -->
+        <div class="card">
+            <h3>টাকা তুলুন (Withdraw)</h3>
+            <div class="notice">
+                <strong>উইথড্র করার নিয়ম:</strong><br>
+                সর্বনিম্ন উইথড্র সীমা: <strong>৳৫০ BDT</strong><br>
+                পেমেন্ট সম্পন্ন হতে ২৪ থেকে ৭২ ঘণ্টা সময় লাগতে পারে।
+            </div>
+            <select id="with-method">
+                <option value="bKash">bKash (বিকাশ)</option>
+                <option value="Nagad">Nagad (নগদ)</option>
+            </select>
+            <input type="text" id="with-account" placeholder="যে নম্বরে টাকা নিবেন">
+            <input type="number" id="with-amount" placeholder="টাকার পরিমাণ (মিনিমাম ৫০)">
+            <button class="btn-red" onclick="submitWithdrawal()">উইথড্র সাবমিট করুন</button>
+        </div>
+
+        <!-- টাকা জমা দেওয়ার সেকশন -->
         <div class="card">
             <h3>টাকা জমা দিন (Deposit)</h3>
             <div class="notice">
@@ -117,7 +130,7 @@
             <button class="btn-green" onclick="submitDeposit()">ডিপোজিট সাবমিট করুন</button>
         </div>
 
-        <!-- মেম্বারশিপ আপগ্রেড -->
+        <!-- প্ল্যান আপগ্রেড -->
         <div class="card">
             <h3>মেম্বারশিপ প্ল্যান আপগ্রেড</h3>
             <button style="background: #e67e22;" onclick="upgradePlan('silver')">Silver প্ল্যান (৳১০০/মাস)</button>
@@ -187,9 +200,26 @@
         const data = await res.json();
         document.getElementById('user-balance').innerText = data.balance.toFixed(2);
         document.getElementById('user-plan').innerText = data.plan.toUpperCase();
+
+        // সম্পন্ন করা কাজের বাটনগুলো ডিজেবল করা
+        const allTasks = ['cpalead1', 'cpalead2', 'adsterra1', 'adsterra2'];
+        const completed = data.completedTasks || [];
+
+        allTasks.forEach(taskId => {
+            const btn = document.getElementById(`btn-${taskId}`);
+            const timerBox = document.getElementById(`timer-${taskId}`);
+            if (completed.includes(taskId)) {
+                btn.disabled = true;
+                timerBox.innerText = "আজকের জন্য এই কাজ সম্পন্ন হয়েছে!";
+                timerBox.style.color = "#27ae60";
+            } else {
+                btn.disabled = false;
+                timerBox.innerText = "";
+                timerBox.style.color = "#e74c3c";
+            }
+        });
     }
 
-    // টাইমার ও অটো-ব্যালেন্স রিওয়ার্ড জমা করার ফাংশন
     function startTask(taskId, targetUrl, durationSeconds) {
         window.open(targetUrl, '_blank');
 
@@ -211,21 +241,34 @@
                 const res = await fetch('/api/complete-task', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: loggedInUser.id })
+                    body: JSON.stringify({ userId: loggedInUser.id, taskId })
                 });
                 const data = await res.json();
                 
                 if(data.success) {
-                    timerBox.innerText = "কাজ সম্পন্ন হয়েছে!";
                     alert(data.message);
                     refreshUserData();
                 } else {
-                    timerBox.innerText = "";
                     alert(data.error);
-                    btn.disabled = false;
+                    refreshUserData();
                 }
             }
         }, 1000);
+    }
+
+    async function submitWithdrawal() {
+        const method = document.getElementById('with-method').value;
+        const accountNumber = document.getElementById('with-account').value;
+        const amount = document.getElementById('with-amount').value;
+
+        const res = await fetch('/api/withdraw', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: loggedInUser.id, method, accountNumber, amount })
+        });
+        const data = await res.json();
+        alert(data.message || data.error);
+        if(data.success) refreshUserData();
     }
 
     async function submitDeposit() {
