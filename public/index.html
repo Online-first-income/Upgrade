@@ -16,8 +16,11 @@
         button:hover { background: #3498db; }
         .btn-green { background: #27ae60; }
         .btn-green:hover { background: #2ecc71; }
+        .btn-orange { background: #e67e22; }
+        .btn-purple { background: #8e44ad; }
         .hidden { display: none; }
         .notice { background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; font-size: 13px; margin-bottom: 10px; }
+        .task-card { background: #f9f9f9; padding: 12px; border-left: 4px solid #2980b9; margin-bottom: 10px; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -28,7 +31,6 @@
     <div id="auth-section">
         <h2>বিডি আর্নিং প্ল্যাটফর্ম</h2>
         
-        <!-- লগইন ফর্ম -->
         <div id="login-box" class="card">
             <h3>একাউন্টে লগইন করুন</h3>
             <input type="email" id="login-email" placeholder="ইমেইল দিন">
@@ -37,7 +39,6 @@
             <p style="text-align:center; font-size:14px; margin-top:10px;">একাউন্ট নেই? <a href="#" onclick="toggleAuth('register')">রেজিস্ট্রেশন করুন</a></p>
         </div>
 
-        <!-- রেজিস্ট্রেশন ফর্ম -->
         <div id="register-box" class="card hidden">
             <h3>নতুন একাউন্ট তৈরি করুন</h3>
             <input type="text" id="reg-name" placeholder="আপনার পূর্ণ নাম">
@@ -49,7 +50,7 @@
         </div>
     </div>
 
-    <!-- ২. মূল ড্যাশবোর্ড (লগইন করার পর দেখাবে) -->
+    <!-- ২. মূল ড্যাশবোর্ড -->
     <div id="dashboard-section" class="hidden">
         <h2>স্বাগতম, <span id="user-name">ইউজার</span>!</h2>
         <div class="balance-box">
@@ -57,7 +58,30 @@
             <button onclick="logout()" style="width: auto; padding: 4px 10px; font-size: 12px; float: right; background: #c0392b;">লগআউট</button>
         </div>
 
-        <!-- টাকা ডিপোজিট করার সেকশন -->
+        <!-- কাজের সেকশন (CPAlead & Adsterra) -->
+        <div class="card">
+            <h3>দৈনিক কাজ (Tasks)</h3>
+            
+            <div class="task-card">
+                <h4>১. CPAlead Offer Task</h4>
+                <p style="font-size:12px; color:#555;">অফারটি সম্পূর্ণ করুন এবং ইনকাম করুন।</p>
+                <!-- আপনার CPAlead লিংকটি নিচে href-এর ভেতরে বসান -->
+                <a href="https://www.cpalead.com" target="_blank" style="text-decoration:none;">
+                    <button class="btn-orange">CPAlead কাজ শুরু করুন</button>
+                </a>
+            </div>
+
+            <div class="task-card">
+                <h4>২. Adsterra Direct Link Task</h4>
+                <p style="font-size:12px; color:#555;">লিংক দেখুন এবং ইনকাম পয়েন্ট যোগ করুন।</p>
+                <!-- আপনার Adsterra Direct Link নিচে href-এর ভেতরে বসান -->
+                <a href="https://www.adsterra.com" target="_blank" style="text-decoration:none;">
+                    <button class="btn-purple">Adsterra কাজ শুরু করুন</button>
+                </a>
+            </div>
+        </div>
+
+        <!-- টাকা ডিপোজিট সেকশন -->
         <div class="card">
             <h3>টাকা জমা দিন (Deposit)</h3>
             <div class="notice">
@@ -71,7 +95,7 @@
                 <option value="Nagad">Nagad (নগদ)</option>
             </select>
             <input type="text" id="dep-sender" placeholder="যে নম্বর থেকে টাকা পাঠিয়েছেন">
-            <input type="number" id="dep-amount" placeholder="টাকার পরিমাণ (যেমন: ১০০, ৫০০)">
+            <input type="number" id="dep-amount" placeholder="টাকার পরিমাণ">
             <input type="text" id="dep-trxid" placeholder="Transaction ID (TrxID)">
             <button class="btn-green" onclick="submitDeposit()">ডিপোজিট সাবমিট করুন</button>
         </div>
